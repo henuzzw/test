@@ -24,13 +24,14 @@ class dotdict(dict):
 # 对代码做了修改，用来找到对应的NlLen_map 和 CodeLen_map  #run42
 NlLen_map = { "Time":3900, "Math":4500, "Lang":280, "Chart": 2350, "Mockito":1780, "unknown":2200}
 CodeLen_map = {  "Time":1300, "Math":2700, "Lang":300, "Chart":5250, "Mockito":1176, "unknown":2800}
-
+tokenLine_map = {}
 # 这个函数用来找到对应的NlLen_map 和 CodeLen_map   -----  #run42
-def getNlLenAndCodeLen(dataFile):
+def getNlLenAndCodeLen(dataFile): # 读取文件
     lines = pickle.load(dataFile)  # dataFile.readlines()
     maxl = 0
     maxl2 = 0
-    for k in range(len(lines)):
+    tokenNumber = 0
+    for k in range(len(lines)): # 针对每个项目，计算计算节点个数
         x = lines[k]
         nodes = []
         linenodes = []
@@ -44,10 +45,13 @@ def getNlLenAndCodeLen(dataFile):
         mus = []
         for i in range(len(x['lines'])):
             linenodes.append(0)
+        tokenNumber = max(tokenNumber, len(x['tokenId']))
+
         maxl = max(maxl, len(nodes))
         maxl2 = max(maxl2, len(linenodes))
     NlLen_map[sys.argv[2]] = maxl
     CodeLen_map[sys.argv[2]] = maxl2
+    tokenLine_map[sys.argv[2]] = tokenNumber
     # print("maxl = " ,maxl,"maxl2 = ",maxl2 ,"    \n" )
     #return maxl,maxl2
 
@@ -99,14 +103,14 @@ def gVar(data):
 
 def train(t = 5, p='Math'):
 
-    torch.manual_seed(args.seed)
+    torch.manual_seed(args.seed) # 设置
     np.random.seed(args.seed)  
     random.seed(args.seed + t)
     torch.cuda.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-    val_set = SumDataset(args, "val", p, testid=t)
+    val_set = SumDataset(args, "val", p, testid=t) # 验证集
     data = pickle.load(open(p + '.pkl', 'rb'))
     print("val_set.ids",val_set.ids)
     train_set = SumDataset(args, "train", testid=t, proj=p, lst= val_set.ids)
@@ -116,7 +120,7 @@ def train(t = 5, p='Math'):
     args.Nl_Vocsize = len(train_set.Nl_Voc)
     args.Vocsize = len(train_set.Char_Voc)
 
-    model = NlEncoder(args)
+    model = NlEncoder(args)  # 这是网络
     if use_cuda:
         print('using GPU')
         model = model.cuda()

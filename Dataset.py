@@ -32,10 +32,11 @@ class SumDataset(data.Dataset):
         self.Nl_Voc = {"pad": 0, "Unknown": 1}
         self.Code_Voc = {"pad": 0, "Unknown": 1}
         self.Char_Voc = {"pad": 0, "Unknown": 1}
-        self.Nl_Voc['Method'] = len(self.Nl_Voc)
-        self.Nl_Voc['Test'] = len(self.Nl_Voc)
-        self.Nl_Voc['Line'] = len(self.Nl_Voc)
-        self.Nl_Voc['RTest'] = len(self.Nl_Voc)
+        self.Nl_Voc['Method'] = len(self.Nl_Voc) # 方法
+        self.Nl_Voc['Test'] = len(self.Nl_Voc) # 错误用例节点
+        self.Nl_Voc['Line'] = len(self.Nl_Voc) # 语句级节点
+        self.Nl_Voc['RTest'] = len(self.Nl_Voc) # 正确测试用例
+        self.Nl_Voc['Token'] = len(self.Nl_Voc) # token级节点
         self.Nl_Len = config['NlLen']
         self.Code_Len = config.CodeLen
         self.Char_Len = config.WoLen
@@ -47,8 +48,8 @@ class SumDataset(data.Dataset):
         self.ids = []
         self.Nls = []
         if os.path.exists("nl_voc.pkl"):
-#            self.init_dic()
-            self.Load_Voc()
+           self.init_dic()
+            # self.Load_Voc()
         else:
             self.init_dic()
         # print(self.Nl_Voc)
@@ -57,7 +58,7 @@ class SumDataset(data.Dataset):
         else:
             data = pickle.load(open(self.proj + 'data.pkl', 'rb'))
         self.data = []
-        if dataName == "train":
+        if dataName == "train": # 训练集
             for i in range(len(data)):
                 tmp = []
                 for j in range(len(data[i])):
@@ -80,7 +81,7 @@ class SumDataset(data.Dataset):
                     tmp.append(data[i][x])
                 self.data.append(tmp)
         else:
-            testnum = int(len(data[0])/10) +1 #1
+            testnum = int(len(data[0])/10) +1 #1 分成十份。
             print(testnum)
             ids = []
             for i in range(len(data)): 
@@ -92,6 +93,8 @@ class SumDataset(data.Dataset):
                         tmp.append(data[i][x])
                 self.data.append(tmp)
             self.ids = ids
+
+
 
     def Load_Voc(self):
         if os.path.exists("nl_voc.pkl"):
@@ -111,7 +114,7 @@ class SumDataset(data.Dataset):
                 tmp += x.lower()
         ans.append(tmp)
         return ans
-    def init_dic(self):
+    def init_dic(self):# 读取数据文件
         # print("initVoc")
         # print(self.proj)
         f = open(self.proj + '.pkl', 'rb')
@@ -138,6 +141,7 @@ class SumDataset(data.Dataset):
                 else:
                     tokens = ".".join(s.split(":")[0].split('.')[-2:])
                 Codes.append(self.splitCamel(tokens))
+
         code_voc = VocabEntry.from_corpus(Codes, size=50000, freq_cutoff = 0)
         self.Code_Voc = code_voc.word2id
         open("code_voc.pkl", "wb").write(pickle.dumps(self.Code_Voc))
@@ -227,6 +231,31 @@ class SumDataset(data.Dataset):
                 # print(codetoken, nltoken)
                 exit(0)
         return ans
+    def preProcessToken(self, x):
+
+
+
+        ltoken = {}
+        tokentype = {}
+        # ltoken用于存储token类型 key： tokenkind， value tokenkindId
+        for i, tk in enumerate(x['tokenKindList']):
+            ltoken[tk] = i
+
+        for i, tokenToKindEdge in enumerate(x['tokenKindEdge']):
+            tokentype[tokenToKindEdge[0]] = tokenToKindEdge[1]
+        # tokentype用于存储token和token类型的关系 key： tokenid， value tokenkindId
+
+        token_nodes = []  # 存储token节点
+        token_types = []  # 存储token类型
+        token_res = []  # 标记错误的token
+
+        # 添加token节点和标记错误的token
+        for token_id in x['tokenId'].keys():
+            token_nodes.append('Token')  # 假设所有token节点类型都标记为'Token'
+            if token_id in x['errorTokensId']:
+                token_res.append(1)  # 错误的token
+            else:
+                token_res.append(0)  # 正确的token
     def preProcessData(self, dataFile):
         path_stacktrace = os.path.join('../FLocalization/stacktrace', self.proj)    
         lines = pickle.load(dataFile) #dataFile.readlines()
@@ -253,7 +282,7 @@ class SumDataset(data.Dataset):
                 stack_info = json.load(open(path_stacktrace + '/%d.json'%k))# dmap[self.proj][k]))
                 if x['ftest'].keys() != stack_info.keys():
                     with open("problem_stack",'a') as f:
-                        f.write("{} {} no!\n".format(k, k))#dmap[self.proj][k]))
+                        f.write("{} {} no!\n".format(k, k)) # dmap[self.proj][k]))
                         f.write(str(x['ftest'].keys()) + '\n')
                         f.write(str(stack_info.keys()) + '\n')
                     for error_trace in x['ftest'].keys():
@@ -265,7 +294,7 @@ class SumDataset(data.Dataset):
                     # error += 1
                 # else:
                     # correct += 1
-                    
+
             nodes = []
             types = []
             res = []
@@ -274,6 +303,7 @@ class SumDataset(data.Dataset):
             nladval = []
             linenodes = []
             linetypes = []
+            """应该是提前按顺序保存节点类型，如methods、ftest、rtest"""
             methodnum = len(x['methods'])
             for i in range(methodnum):
                 nodes.append('Method')
@@ -285,16 +315,26 @@ class SumDataset(data.Dataset):
             for i in range(len(x['rtest'])):
                 nodes.append('RTest')
                 # types.append(0)
+            # for i in range(len(x['lines'])):
+            #     nodes.append('Line')
+            # for i in range(len(x['tokenId'])):
+            #     nodes.append('Token')
+            #     # types.append(1)
 
             mus = []
             ltype={}
             ts={}
+            # 映射，将语句类型映射为数字
             for t in  x['ltype']:
                 ts[x['ltype'][t]]=t
+            # 构建语句和语句类型的边
             for e in  x['edge3']:
                 ltype[e[0]]=ts[e[1]]
             #print(ltype)
             x['ltype']=ltype
+
+
+            """遍历每个语句，将语句类型映射为数字，将语句类型和语句的关系映射为数字，将语句和方法的关系映射为数字，将语句和语句的控制流关系映射为数字，将语句和语句的数据流关系映射为数字"""
             for i in range(len(x['lines'])):
                 if i not in x['ltype']:
                     x['ltype'][i] = 'Empty'
@@ -307,7 +347,6 @@ class SumDataset(data.Dataset):
                     res.append( 1 )
                 else:
                     res.append( 0 )
-
             maxl = max(maxl, len(nodes))
             maxl2 = max(maxl2, len(linenodes))
             VsusFLRanks=[]
@@ -401,6 +440,7 @@ class SumDataset(data.Dataset):
                 nladrow.append(b)
                 nladcol.append(a)
                 nladval.append(1)
+            # self.preProcessToken(x)
 
 
             Nodes.append(self.pad_seq(self.Get_Em(nodes, self.Nl_Voc), self.Nl_Len))

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="zzw@114.242.29.129:10201 password (2)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="bhxz@114.242.29.129:10170 password (3)">
         <serverdata>
@@ -40,7 +40,14 @@
       <paths name="zzw@114.242.29.129:10201 password">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/zzw/ForGraduate/ex_gccvFL" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="zzw@114.242.29.129:10201 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/zzw/ForGraduate/ex_gccvFL" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
@@ -65,6 +72,14 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="zzw@192.168.50.33:22 password">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

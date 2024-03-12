@@ -47,6 +47,11 @@ class NlEncoder(nn.Module):
         x = nodeem
 #        lineem = self.token_embedding1(linenode)
         lineem = self.token_embedding(linenode)
+        tempvis = lineRank.unsqueeze(-1)
+        print(type(tempvis))
+        print(tempvis)
+        print(tempvis.shape)
+        tempvis = tempvis.float()
         lineem = torch.cat([lineem, lineRank.unsqueeze(-1).float()], dim=-1)
         x = torch.cat([x, lineem], dim=1)
         for trans in self.transformerBlocks:
@@ -59,11 +64,33 @@ class NlEncoder(nn.Module):
         loss = loss.sum(dim=-1)
         return loss, resSoftmax, x
 
-
-
-
-
-
-
-
-
+# git rm -r zhangzhanwen/AstCfgPdg_JapaserSoot-master/
+# git rm -r zhangzhanwen/Automated-CFG-Generation-master/
+# git rm -r zhangzhanwen/ConDecfects-main/
+# git rm -r zhangzhanwen/control-flow-graph-master/
+# git rm -r zhangzhanwen/FFL-production/
+# git rm -r zhangzhanwen/FLITSR/
+# git rm -r zhangzhanwen/for-wala/
+# git rm -r zhangzhanwen/Grace/
+# git rm -r zhangzhanwen/java_flow_analyser-main/
+# git rm -r zhangzhanwen/scripts/
+# git rm -r zhangzhanwen/GccovFL/GraceVsusResult/
+# git rm -r zhangzhanwen/GccovFL/ITSP-data/
+# git rm -r zhangzhanwen/GccovFL/pre_result/
+# git rm -r zhangzhanwen/GccovFL/pre_VsusResult/
+# git rm -r zhangzhanwen/GccovFL/result/
+# git rm -r zhangzhanwen/GccovFL/resultVsusResultDown/
+# git rm -r zhangzhanwen/GccovFL/test/
+# git rm -r zhangzhanwen/GccovFL/transToGraceInput/Codeflaws/codeflaws
+# git rm -r zhangzhanwen/GccovFL/transToGraceInput/codeflawsDatasymbol
+# git rm -r zhangzhanwen/GccovFL/transToGraceInput/ITSP-data
+# git rm -r zhangzhanwen/GccovFL/transToGraceInput/result
+# git rm -r zhangzhanwen/GccovFL/transToGraceInput/result2023年11月7日
+#
+#
+#
+# git rm -r  zhangzhanwen/GccovFL/transToGraceInput/Codeflaws/codeflaws_1/99-A-bug-3759651-3759654/Tag_c/1.txt
+# git rm zhangzhanwen/GccovFL/transToGraceInput/Codeflaws/codeflaws_1/99-A-bug-6985349-6985355/Tag_c/1.txt
+# git rm zhangzhanwen/GccovFL/transToGraceInput/Codeflaws/codeflaws_1/99-B-bug-5811742-5811752/Tag_c/1.txt
+# git rm zhangzhanwen/GccovFL/transToGraceInput/Codeflaws/temp.py
+# git rm zhangzhanwen/GccovFL/transToGraceInput/test/17-A-13897450.c
