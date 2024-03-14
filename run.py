@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
+
 import json
+import subprocess
 import time
 
 import torch
@@ -47,6 +51,7 @@ def getNlLenAndCodeLen(dataFile): # 读取文件
             linenodes.append(0)
         tokenNumber = max(tokenNumber, len(x['tokenId']))
 
+
         maxl = max(maxl, len(nodes))
         maxl2 = max(maxl2, len(linenodes))
     NlLen_map[sys.argv[2]] = maxl
@@ -54,13 +59,13 @@ def getNlLenAndCodeLen(dataFile): # 读取文件
     tokenLine_map[sys.argv[2]] = tokenNumber
     # print("maxl = " ,maxl,"maxl2 = ",maxl2 ,"    \n" )
     #return maxl,maxl2
-
-
+print(sys.argv)
 # , =
 getNlLenAndCodeLen(open(sys.argv[2]+'.pkl', "rb"))
 args = dotdict({
     'NlLen':NlLen_map[sys.argv[2]],
     'CodeLen':CodeLen_map[sys.argv[2]],
+    'TokenLen': tokenLine_map[sys.argv[2]],
     'SentenceLen':10,
     'batch_size':60,
     'embedding_size':32,
@@ -157,7 +162,7 @@ def train(t = 5, p='Math'):
                             devBatch[i] = gVar(devBatch[i])
                         with torch.no_grad():
                             # print(devBatch)
-                            l, pre, _ = model(devBatch[0], devBatch[1], devBatch[2], devBatch[3], devBatch[4], devBatch[5], devBatch[6], devBatch[7],devBatch[8])
+                            l, pre, _ = model(devBatch[0], devBatch[1], devBatch[2], devBatch[3], devBatch[4], devBatch[5], devBatch[6], devBatch[7],devBatch[8] )
                             resmask = torch.eq(devBatch[1], 2)
                             s = -pre#-pre[:, :, 1]
                             s = s.masked_fill(resmask == 0, 1e9)
@@ -208,6 +213,11 @@ def train(t = 5, p='Math'):
 
 
 if __name__ == "__main__":
+    print("++++++++++++++++++++++")
+    print(sys.version)
+    print(sys.version_info)
+    print(sys.executable)
+    print("_________________________")
     args.lr = float(sys.argv[3])
     args.seed = int(sys.argv[4])
     args.batch_size = int(sys.argv[5])

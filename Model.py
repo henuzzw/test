@@ -48,10 +48,6 @@ class NlEncoder(nn.Module):
 #        lineem = self.token_embedding1(linenode)
         lineem = self.token_embedding(linenode)
         tempvis = lineRank.unsqueeze(-1)
-        print(type(tempvis))
-        print(tempvis)
-        print(tempvis.shape)
-        tempvis = tempvis.float()
         lineem = torch.cat([lineem, lineRank.unsqueeze(-1).float()], dim=-1)
         x = torch.cat([x, lineem], dim=1)
         for trans in self.transformerBlocks:
