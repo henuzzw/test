@@ -126,6 +126,7 @@ def train(t = 5, p='Math'):
     args.Vocsize = len(train_set.Char_Voc)
 
     model = NlEncoder(args)  # 这是网络
+    model = model.cpu()
     if use_cuda:
         print('using GPU')
         model = model.cuda()
@@ -162,8 +163,12 @@ def train(t = 5, p='Math'):
                             devBatch[i] = gVar(devBatch[i])
                         with torch.no_grad():
                             # print(devBatch)
-                            l, pre, _ = model(devBatch[0], devBatch[1], devBatch[2], devBatch[3], devBatch[4], devBatch[5], devBatch[6], devBatch[7],devBatch[8] )
-                            resmask = torch.eq(devBatch[1], 2)
+                            # tempvar = devBatch[8]
+                            # tempvar = tempvar.unsqueeze(-1)
+                            # tempvar = tempvar.float()
+                            l, pre, _ = model(devBatch[0], devBatch[1], devBatch[2], devBatch[3], devBatch[4], devBatch[5], devBatch[6], devBatch[7],devBatch[8] ,devBatch[9], devBatch[10],devBatch[11])
+                            """"""
+                            resmask = torch.eq(devBatch[9], 1)
                             s = -pre#-pre[:, :, 1]
                             s = s.masked_fill(resmask == 0, 1e9)
                             pred = s.argsort(dim=-1)
@@ -174,8 +179,8 @@ def train(t = 5, p='Math'):
                                 maxn = 1e9
                                 lst = pred[k].tolist()[:resmask.sum(dim=-1)[k].item()]#score = np.sum(loss) / numt
                                 #print(k,"lst = ",lst,"data ans = ",datat['ans'])
-                                for x in datat['ans']:
-                                    x=x-1
+                                for x in datat['errorTokensId']:
+                                    #x=x
                                     i = lst.index(x)
                                     maxn = min(maxn, i)
                                 score2.append(maxn)
@@ -185,8 +190,6 @@ def train(t = 5, p='Math'):
                 # print('curr accuracy is ' + str(score) + "," + str(score2))
                 if score2[0] == 0:
                     batchn.append(epoch)
-                    
-
                 if  maxl >= score:
                     brest = score2
                     maxl = score
@@ -200,7 +203,7 @@ def train(t = 5, p='Math'):
                 model = model.train()
             for i in range(len(dBatch)):
                 dBatch[i] = gVar(dBatch[i])
-            loss, _, _ = model(dBatch[0], dBatch[1], dBatch[2], dBatch[3], dBatch[4], dBatch[5], dBatch[6], dBatch[7],dBatch[8])
+            loss, _, _ = model(dBatch[0], dBatch[1], dBatch[2], dBatch[3], dBatch[4], dBatch[5], dBatch[6], dBatch[7],dBatch[8], dBatch[9], dBatch[10],dBatch[11])
             # print(loss.mean().item())
             optimizer.zero_grad()
             loss = loss.mean()

@@ -46,6 +46,7 @@ class GraphConvolution( nn.Module ):
 #        output = torch.matmul( adjacency, support )
         x=adjacency.shape
         y=support.shape
+        #print("CUDA",adjacency[0].shape)#adjacency[0].device,support[0].device)
         output=torch.matmul(adjacency[0], support[0]).reshape(-1,x[1],y[2])
         for i in range(1,x[0]):
             output=torch.cat([output,torch.matmul(adjacency[i], support[i]).reshape(-1,x[1],y[2])],dim=0)

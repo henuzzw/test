@@ -9,6 +9,11 @@ K_size=1
 
 def write(epoch,datalist):
     bg = op.load_workbook(r"Grace.xlsx")  # 应先将excel文件放入到工作目录下
+    sheetname =  "Sheet"+str(epoch)
+    # 检查工作表是否存在，如果不存在则创建
+    if sheetname not in bg.sheetnames:
+        bg.create_sheet(sheetname)
+
     sheet = bg["Sheet"+str(epoch)]
     row=sheet.max_row+1
     #max_row和max_column两个方法

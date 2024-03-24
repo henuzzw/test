@@ -24,9 +24,9 @@ class NlEncoder(nn.Module):
         self.conv = nn.Conv2d(self.embedding_size, self.embedding_size, (1, self.word_len))
         self.transformerBlocks = nn.ModuleList(
             [TransformerBlock(self.embedding_size, 1, self.feed_forward_hidden, 0.1, self.modelName) for _ in range(self.layers)])
-        self.token_embedding = nn.Embedding(args.Nl_Vocsize, self.embedding_size-1)
-        self.token_embedding1 = nn.Embedding(args.Nl_Vocsize, self.embedding_size)
-
+        self.token_embedding = nn.Embedding(100, self.embedding_size-1)
+        self.token_embedding1 = nn.Embedding(100, self.embedding_size)
+        print(args)
         self.text_embedding = nn.Embedding(20, self.embedding_size)
         self.transformerBlocksTree = nn.ModuleList(
             [rightTransformerBlock(self.embedding_size, 8, self.feed_forward_hidden, 0.1) for _ in range(5)])
@@ -37,26 +37,36 @@ class NlEncoder(nn.Module):
         self.lstm = nn.LSTM(self.embedding_size // 2, int(self.embedding_size / 4), batch_first=True, bidirectional=True)
         self.conv = nn.Conv2d(self.embedding_size, self.embedding_size, (1, 10))
         self.resLinear2 = nn.Linear(self.embedding_size, 1)
-    def forward(self, input_node, inputtype, inputad, res, inputtext, linenode, linetype, linemus,lineRank):
+    def forward(self, input_node, inputtype, inputad, res, inputtext, linenode, linetype, linemus,lineRank, tokenTypes, tokenRes,tokenNodes):
         nlmask = torch.gt(input_node, 0)
-        resmask = torch.eq(inputtype, 2)
+        resmask = torch.eq(tokenTypes, 1)
         # print("resmask = ",resmask)
         inputad = inputad.float()
         nodeem = self.token_embedding(input_node)
         nodeem = torch.cat([nodeem, inputtext.unsqueeze(-1).float()], dim=-1)
         x = nodeem
-#        lineem = self.token_embedding1(linenode)
-        lineem = self.token_embedding(linenode)
-        tempvis = lineRank.unsqueeze(-1)
-        lineem = torch.cat([lineem, lineRank.unsqueeze(-1).float()], dim=-1)
+        #lineem = self.token_embedding1(linenode)
+        # print(tokenNodes.shape)
+        lineem = self.token_embedding1(tokenNodes)
+        # print(lineem.shape)
         x = torch.cat([x, lineem], dim=1)
+        # print(x.shape)
+
+        lineem = self.token_embedding(linenode)
+        # print(lineem.shape)
+        tempvis = lineRank.unsqueeze(-1).float()
+        # print(lineRank.shape, tempvis.shape)
+        lineem = torch.cat([lineem, tempvis ], dim=-1)
+        # print(lineem.shape)
+        x = torch.cat([x, lineem], dim=1)
+        # print("x.shape",x.shape,inputad.shape)
         for trans in self.transformerBlocks:
             x = trans.forward(x, nlmask, inputad)
-        x = x[:,input_node.size(1):]
-        # print(x,input_node.size(1))
+        x = x[:,input_node.size(1):input_node.size(1)+tokenNodes.size(1)]
+        # print(x.shape)
         resSoftmax = F.softmax(self.resLinear2(x).squeeze(-1).masked_fill(resmask==0, -1e9), dim=-1)
         # print("resSoftMax = ",resSoftmax)
-        loss = -torch.log(resSoftmax.clamp(min=1e-10, max=1)) * res
+        loss = -torch.log(resSoftmax.clamp(min=1e-10, max=1)) * tokenRes
         loss = loss.sum(dim=-1)
         return loss, resSoftmax, x
 

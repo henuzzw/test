@@ -25,12 +25,12 @@ for i in tqdm(range(int(len(lst) / totalnum) + 1)):
     for j in card:
         cardn =j
 
-        p = subprocess.Popen("CUDA_VISIBLE_DEVICES="+str(card[cardn]) + "  /home/wushumei/.conda/envs/pytorch/bin/python ./run.py %d %s %f %d %d %s %d"%(i, project, lr, seed, batch_size,modelName,layers), shell=True)
+        p = subprocess.Popen("CUDA_VISIBLE_DEVICES="+str(card[cardn]) + "  python ./run.py %d %s %f %d %d %s %d"%(i, project, lr, seed, batch_size,modelName,layers), shell=True)
         jobs.append(p)
         time.sleep(10)
     for p in jobs:
         p.wait()
-p = subprocess.Popen("/home/wushumei/.conda/envs/pytorch/bin/python sum.py %s %d %f %d %s"%(project, seed, lr, batch_size,str(layers)+modelName), shell=True)
+p = subprocess.Popen(" python sum.py %s %d %f %d %s"%(project, seed, lr, batch_size,str(layers)+modelName), shell=True)
 p.wait()
 
 

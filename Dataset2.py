@@ -261,29 +261,7 @@ class SumDataset(data.Dataset):
                 exit(0)
         return ans
 
-    def preProcessToken(self, x):
 
-        ltoken = {}
-        tokentype = {}
-        # ltoken用于存储token类型 key： tokenkind， value tokenkindId
-        for i, tk in enumerate(x['tokenKindList']):
-            ltoken[tk] = i
-
-        for i, tokenToKindEdge in enumerate(x['tokenKindEdge']):
-            tokentype[tokenToKindEdge[0]] = tokenToKindEdge[1]
-        # tokentype用于存储token和token类型的关系 key： tokenid， value tokenkindId
-
-        token_nodes = []  # 存储token节点
-        token_types = []  # 存储token类型
-        token_res = []  # 标记错误的token
-
-        # 添加token节点和标记错误的token
-        for token_id in x['tokenId'].keys():
-            token_nodes.append('Token')  # 假设所有token节点类型都标记为'Token'
-            if token_id in x['errorTokensId']:
-                token_res.append(1)  # 错误的token
-            else:
-                token_res.append(0)  # 正确的token
 
     def preProcessData(self, dataFile):  # 好恶心的代码
         path_stacktrace = os.path.join('../FLocalization/stacktrace', self.proj)
@@ -370,7 +348,6 @@ class SumDataset(data.Dataset):
                 tokentype[e1] = x['tokenKindList'][e2]
             """上面这段代码，将tokenid和token类型的关系映射"""
             x['tokentype'] = tokentype
-
             for i in range(len(x['tokenId'])):
                 if i not in x['tokentype']:
                     x['tokentype'][i] = 'Empty'
@@ -378,6 +355,7 @@ class SumDataset(data.Dataset):
                     self.Nl_Voc[x['ltype'][i]] = len(self.Nl_Voc)
                 tokennodes.append(x['tokentype'][i])
                 tokentypes.append(1)
+                types.append(3)
                 if i in x['errorTokensId']:
                     tokenres.append(1)
                 else:
@@ -422,7 +400,7 @@ class SumDataset(data.Dataset):
             maxl3 = max(maxl3, len(tokennodes))  # token节点的个数
             VsusFLRanks = []
             for vsusrank in range(len(x['VsusRank'])):
-                VsusFLRanks.append(x['VsusRank'][vsusrank] )
+                VsusFLRanks.append(x['VsusRank'][vsusrank] / len(x['VsusRank']))
             ed = {}
 
             line2method = {}
@@ -579,7 +557,6 @@ class SumDataset(data.Dataset):
         pickle.dump(self.Nl_Voc, f)
         f.close()
         # assert(0)#assert(0)
-        #    非token、语句的节点，
         batchs = [Nodes, Types, inputNlad, Res, inputText, LineNodes, LineTypes, LineMus, LineRank, tokenTypes, tokenRes,tokenNodes]
 
         self.data = batchs
@@ -635,7 +612,7 @@ class SumDataset(data.Dataset):
                                     [idx - batch_size * i, data[j][shuffle[idx]].row[p], data[j][shuffle[idx]].col[p]])
                                 v.append(data[j][shuffle[idx]].data[p])
                         ans.append(torch.sparse.FloatTensor(torch.LongTensor(ids).t(), torch.FloatTensor(v), torch.Size(
-                            [batch_size, self.Nl_Len + self.Code_Len + self.Token_Len, self.Nl_Len + self.Code_Len + self.Token_Len])))
+                            [batch_size, self.Nl_Len + self.Code_Len, self.Nl_Len + self.Code_Len])))
                 yield ans
             if batch_nums * batch_size < len(data[0]):
                 ans = []
@@ -652,8 +629,8 @@ class SumDataset(data.Dataset):
                                             data[j][shuffle[idx]].col[p]])
                                 v.append(data[j][shuffle[idx]].data[p])
                         ans.append(torch.sparse.FloatTensor(torch.LongTensor(ids).t(), torch.FloatTensor(v), torch.Size(
-                            [len(data[0]) - batch_size * batch_nums, self.Nl_Len + self.Code_Len + self.Token_Len,
-                             self.Nl_Len + self.Code_Len + self.Token_Len])))
+                            [len(data[0]) - batch_size * batch_nums, self.Nl_Len + self.Code_Len,
+                             self.Nl_Len + self.Code_Len])))
                 yield ans
 
 
